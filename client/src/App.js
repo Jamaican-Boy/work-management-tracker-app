@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import ProjectInfo from "./pages/ProjectInfo";
 import Register from "./pages/Register";
+import PageNotFound from "./pages/404";
 
 function App() {
   const { loading } = useSelector((state) => state.loaders);
@@ -41,6 +42,7 @@ function App() {
           />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="*" element={<PageNotFound />} />
         </Routes>
       </BrowserRouter>
     </div>

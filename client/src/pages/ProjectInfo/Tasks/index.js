@@ -188,7 +188,9 @@ function Tasks({ project }) {
     <div>
       {!isEmployee && (
         <div className="flex justify-end">
-          <Button type="default" onClick={() => setShowTaskForm(true)}>
+          <Button type="default" onClick={() => {
+            setTask(null)
+            setShowTaskForm(true)}}>
             Add Task
           </Button>
         </div>

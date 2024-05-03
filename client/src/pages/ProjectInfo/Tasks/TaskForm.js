@@ -43,7 +43,7 @@ function TaskForm({
           ...values,
           project: project._id,
           assignedTo: assignedToUserId,
-          assignedBy,
+          assignedBy: assignedBy,
         });
       }
 

@@ -9,6 +9,7 @@ function ProjectForm({ show, setShow, reloadData, project }) {
   const formRef = React.useRef(null);
   const { user } = useSelector((state) => state.users);
   const dispatch = useDispatch();
+  
   const onFinish = async (values) => {
     try {
       dispatch(SetLoading(true));
@@ -43,7 +44,7 @@ function ProjectForm({ show, setShow, reloadData, project }) {
   };
   return (
     <Modal
-      title={project ? "EDIT PROJRCT" : "CREATE PROJECT"}
+      title={project ? "EDIT PROJECT" : "CREATE PROJECT"}
       open={show}
       onCancel={() => setShow(false)}
       centered

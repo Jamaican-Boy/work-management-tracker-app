@@ -49,10 +49,11 @@ exports.getAllTasks = async function getAllTasks(req, res) {
 // update task
 exports.updateTask = async function updateTask(req, res) {
   try {
-    await Task.findByIdAndUpdate(req.body._id, req.body);
+    const task = await Task.findByIdAndUpdate(req.body._id, req.body);
     res.send({
       success: true,
       message: "Task updated successfully",
+      data: task
     });
   } catch (error) {
     res.send({

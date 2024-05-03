@@ -14,11 +14,11 @@ function Tasks({ project }) {
     assignedTo: "all",
     assignedBy: "all",
   });
-  const [showViewTask, setShowViewTask] = React.useState(false);
+  const [showViewTask, setShowViewTask] = useState(false);
   const { user } = useSelector((state) => state.users);
   const [tasks, setTasks] = useState([]);
-  const [showTaskForm, setShowTaskForm] = React.useState(false);
-  const [task, setTask] = React.useState(null);
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [task, setTask] = useState(null);
   const dispatch = useDispatch();
   const isEmployee = project.members.find(
     (member) => member.role === "employee" && member.user._id === user._id

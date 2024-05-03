@@ -2,11 +2,14 @@ const User = require("../models/userModel");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+const sendMail = require("../helpers/sendMailHelpers");
+
 // register a new user
 exports.registerUser = async function registerUser(req, res) {
   try {
     // check if the user already exists
-    const userExists = await User.findOne({ email: req.body.email });
+    const email = req.body.email;
+    const userExists = await User.findOne({ email: email });
     if (userExists) {
       throw new Error("User already exists");
     }
@@ -19,6 +22,8 @@ exports.registerUser = async function registerUser(req, res) {
     // save the user
     const user = new User(req.body);
     await user.save();
+    // send mail after successful registration
+    sendMail(email);
     res.send({
       success: true,
       message: "User registered successfully",

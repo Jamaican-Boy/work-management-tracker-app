@@ -5,7 +5,7 @@ const projectsRoute = require("./routes/projects.route");
 const tasksRoute = require("./routes/tasks.route");
 const notificationsRoute = require("./routes/notifications.route");
 
-const db = require("./config/database.config");
+require("./config/database.config");
 require("dotenv").config();
 
 const app = express();

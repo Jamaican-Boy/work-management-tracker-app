@@ -1,8 +1,8 @@
-const Project = require("../models/projectModel");
-const User = require("../models/userModel");
+const Project = require("../models/project.model");
+const User = require("../models/user.model");
 
 // create a project
-exports.createProject = async function createProject(req, res) {
+exports.createProject = async (req, res) => {
   try {
     const newProject = new Project(req.body);
     await newProject.save();
@@ -20,7 +20,7 @@ exports.createProject = async function createProject(req, res) {
 };
 
 // get all projects
-exports.getAllProjects = async function getAllProjects(req, res) {
+exports.getAllProjects = async (req, res) => {
   try {
     const projects = await Project.find({
       owner: req.body.userId,
@@ -38,7 +38,7 @@ exports.getAllProjects = async function getAllProjects(req, res) {
 };
 
 // get project by id
-exports.getProjectById = async function getProjectById(req, res) {
+exports.getProjectById = async (req, res) => {
   try {
     const project = await Project.findById(req.body._id)
       .populate("owner")
@@ -56,7 +56,7 @@ exports.getProjectById = async function getProjectById(req, res) {
 };
 
 // get projects by role
-exports.getProjectByRole = async function getProjectByRole(req, res) {
+exports.getProjectByRole = async (req, res) => {
   try {
     const userId = req.body.userId;
     const projects = await Project.find({ "members.user": userId })
@@ -77,7 +77,7 @@ exports.getProjectByRole = async function getProjectByRole(req, res) {
 };
 
 // edit a project
-exports.editProject = async function editProject(req, res) {
+exports.editProject = async (req, res) => {
   try {
     await Project.findByIdAndUpdate(req.body._id, req.body);
     res.send({
@@ -93,7 +93,7 @@ exports.editProject = async function editProject(req, res) {
 };
 
 // delete a project
-exports.deleteProject = async function deleteProject(req, res) {
+exports.deleteProject = async (req, res) => {
   try {
     await Project.findByIdAndDelete(req.body._id);
     res.send({
@@ -109,7 +109,7 @@ exports.deleteProject = async function deleteProject(req, res) {
 };
 
 // add a member to a project
-exports.addMemberToProject = async function addMemberToProject(req, res) {
+exports.addMemberToProject = async (req, res) => {
   try {
     const { email, role, projectId } = req.body;
     const user = await User.findOne({ email });
@@ -141,10 +141,7 @@ exports.addMemberToProject = async function addMemberToProject(req, res) {
 };
 
 // remove a member from a project
-exports.removeMemberFromProject = async function removeMemberFromProject(
-  req,
-  res
-) {
+exports.removeMemberFromProject = async (req, res) => {
   try {
     const { memberId, projectId } = req.body;
 

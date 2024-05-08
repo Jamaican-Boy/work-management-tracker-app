@@ -1,7 +1,7 @@
 const router = require("express").Router();
 
-const authMiddleware = require("../middlewares/authMiddleware");
-const projectsController = require("../controllers/projectsController");
+const authMiddleware = require("../middlewares/auth.middleware");
+const projectsController = require("../controllers/projects.controller");
 
 // create a project
 router.post(

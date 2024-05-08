@@ -1,11 +1,11 @@
-const User = require("../models/userModel");
+const User = require("../models/user.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const sendMail = require("../helpers/sendMailHelpers");
+const sendMail = require("../helpers/sendmail.helper");
 
 // register a new user
-exports.registerUser = async function registerUser(req, res) {
+exports.registerUser = async (req, res) => {
   try {
     // check if the user already exists
     const email = req.body.email;
@@ -37,7 +37,7 @@ exports.registerUser = async function registerUser(req, res) {
 };
 
 // login a user
-exports.loginUser = async function loginUser(req, res) {
+exports.loginUser = async (req, res) => {
   try {
     // check if the user exists
     const user = await User.findOne({ email: req.body.email });
@@ -73,7 +73,7 @@ exports.loginUser = async function loginUser(req, res) {
 };
 
 // get logged in user
-exports.getLoggedInUser = async function getLoggedInUser(req, res) {
+exports.getLoggedInUser = async (req, res) => {
   try {
     const user = await User.findOne({ _id: req.body.userId });
 

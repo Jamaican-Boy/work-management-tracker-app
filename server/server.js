@@ -1,15 +1,17 @@
 const express = require("express");
-const app = express();
+
+const usersRoute = require("./routes/users.route");
+const projectsRoute = require("./routes/projects.route");
+const tasksRoute = require("./routes/tasks.route");
+const notificationsRoute = require("./routes/notifications.route");
+
+const db = require("./config/database.config");
 require("dotenv").config();
-app.use(express.json());
-const dbConfig = require("./config/dbConfig");
+
+const app = express();
 const port = process.env.PORT || 5000;
 
-const usersRoute = require("./routes/usersRoute");
-const projectsRoute = require("./routes/projectsRoute");
-const tasksRoute = require("./routes/tasksRoute");
-const notificationsRoute = require("./routes/notificationsRoute");
-
+app.use(express.json());
 app.use("/api/users", usersRoute);
 app.use("/api/projects", projectsRoute);
 app.use("/api/tasks", tasksRoute);
@@ -26,4 +28,4 @@ if (process.env.NODE_ENV === "production") {
   });
 }
 
-app.listen(port, () => console.log(`Node JS server listening on port ${port}`));
+app.listen(port, () => console.log(`Server has started on port ${port}!`));

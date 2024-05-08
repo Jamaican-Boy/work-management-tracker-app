@@ -1,8 +1,8 @@
-const Task = require("../models/taskModel");
-const cloudinary = require("../config/cloudinaryConfig");
+const Task = require("../models/task.model");
+const cloudinary = require("../config/cloudinary.config");
 
 // create a task
-exports.createTask = async function createTask(req, res) {
+exports.createTask = async (req, res) => {
   try {
     const newTask = new Task(req.body);
     await newTask.save();
@@ -20,7 +20,7 @@ exports.createTask = async function createTask(req, res) {
 };
 
 // get all tasks
-exports.getAllTasks = async function getAllTasks(req, res) {
+exports.getAllTasks = async (req, res) => {
   try {
     Object.keys(req.body).forEach((key) => {
       if (req.body[key] === "all") {
@@ -47,13 +47,13 @@ exports.getAllTasks = async function getAllTasks(req, res) {
 };
 
 // update task
-exports.updateTask = async function updateTask(req, res) {
+exports.updateTask = async (req, res) => {
   try {
     const task = await Task.findByIdAndUpdate(req.body._id, req.body);
     res.send({
       success: true,
       message: "Task updated successfully",
-      data: task
+      data: task,
     });
   } catch (error) {
     res.send({
@@ -64,7 +64,7 @@ exports.updateTask = async function updateTask(req, res) {
 };
 
 // delete task
-exports.deleteTask = async function deleteTask(req, res) {
+exports.deleteTask = async (req, res) => {
   try {
     await Task.findByIdAndDelete(req.body._id);
     res.send({
@@ -80,7 +80,7 @@ exports.deleteTask = async function deleteTask(req, res) {
 };
 
 // upload image
-exports.uploadImage = async function uploadImage(req, res) {
+exports.uploadImage = async (req, res) => {
   try {
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: "tasks",

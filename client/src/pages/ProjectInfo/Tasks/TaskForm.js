@@ -27,6 +27,10 @@ function TaskForm({
       const assignedToMember = project.members.find(
         (member) => member.user.email === email
       );
+      // Check if assignedToMember exists before accessing its properties
+      if (assignedToMember === null) {
+        throw new Error("Assigned member not found.");
+      }
       const assignedToUserId = assignedToMember.user._id;
       dispatch(SetLoading(true));
       if (task) {
@@ -38,6 +42,7 @@ function TaskForm({
           _id: task._id,
         });
       } else {
+        // create task
         const assignedBy = user._id;
         response = await CreateTask({
           ...values,

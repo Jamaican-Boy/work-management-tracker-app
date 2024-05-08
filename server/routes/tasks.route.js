@@ -1,9 +1,9 @@
 const router = require("express").Router();
 const multer = require("multer");
 
-const storage = require("../utils/multer");
-const authMiddleware = require("../middlewares/authMiddleware");
-const tasksController = require("../controllers/tasksController");
+const storage = require("../helpers/multer.helper");
+const authMiddleware = require("../middlewares/auth.middleware");
+const tasksController = require("../controllers/tasks.controller");
 
 // create a task
 router.post("/create-task", authMiddleware, tasksController.createTask);

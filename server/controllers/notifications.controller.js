@@ -1,7 +1,7 @@
-const Notification = require("../models/notificationsModel");
+const Notification = require("../models/notification.model");
 
 // add a notification
-exports.addNotification = async function addNotification(req, res) {
+exports.addNotification = async (req, res) => {
   try {
     const newNotification = new Notification(req.body);
     await newNotification.save();
@@ -19,7 +19,7 @@ exports.addNotification = async function addNotification(req, res) {
 };
 
 // get all notifications
-exports.getAllNotifications = async function getAllNotifications(req, res) {
+exports.getAllNotifications = async (req, res) => {
   try {
     const notifications = await Notification.find({
       user: req.body.userId,
@@ -37,7 +37,7 @@ exports.getAllNotifications = async function getAllNotifications(req, res) {
 };
 
 // mark notification as read
-exports.markNotification = async function markNotification(req, res) {
+exports.markNotification = async (req, res) => {
   try {
     await Notification.updateMany(
       {
@@ -65,7 +65,7 @@ exports.markNotification = async function markNotification(req, res) {
 };
 
 // delete all notifications
-exports.deleteNotifications = async function deleteNotifications(req, res) {
+exports.deleteNotifications = async (req, res) => {
   try {
     await Notification.deleteMany({
       user: req.body.userId,

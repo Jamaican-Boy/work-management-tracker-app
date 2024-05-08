@@ -1,6 +1,6 @@
 import { Button, Form, Input, message, Modal, Tabs, Upload } from "antd";
 import TextArea from "antd/es/input/TextArea";
-import React, { useEffect } from "react";
+import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AddNotification } from "../../../apicalls/notifications";
 import { CreateTask, UpdateTask, UploadImage } from "../../../apicalls/tasks";
@@ -16,7 +16,7 @@ function TaskForm({
   const [selectedTab = "1", setSelectedTab] = React.useState("1");
   const [email, setEmail] = React.useState("");
   const { user } = useSelector((state) => state.users);
-  const formRef = React.useRef(null);
+  const formRef = React.useRef("");
   const [file = null, setFile] = React.useState(null);
   const [images = [], setImages] = React.useState(task?.attachments || []);
   const dispatch = useDispatch();
@@ -33,14 +33,19 @@ function TaskForm({
       }
       const assignedToUserId = assignedToMember.user._id;
       dispatch(SetLoading(true));
+
+      // ! BUG
       if (task) {
         // update task
+        console.log(task);
         response = await UpdateTask({
           ...values,
           project: project._id,
           assignedTo: task.assignedTo._id,
           _id: task._id,
         });
+
+        console.log(response);
       } else {
         // create task
         const assignedBy = user._id;

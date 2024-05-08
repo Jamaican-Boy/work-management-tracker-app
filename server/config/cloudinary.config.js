@@ -1,7 +1,8 @@
-const cloudinary = require('cloudinary').v2;
+const cloudinary = require("cloudinary").v2;
 
+require("dotenv").config();
 
-// Configuration 
+// Configuration
 cloudinary.config({
   cloud_name: process.env.cloudinary_cloud_name,
   api_key: process.env.cloudinary_api_key,

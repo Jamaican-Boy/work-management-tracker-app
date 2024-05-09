@@ -37,14 +37,23 @@ function VerifyEmail() {
     <div className="flex min-h-screen p-5 justify-center items-center">
       {emailVerified === "" && (
         <h1 className="text-primary text-4xl">
-          Please wait we are verifying your email
+          Please Wait We We Verifying Your Email...
         </h1>
       )}
 
       {emailVerified === "true" && (
-        <h1 className="text-primary text-4xl">
-          Your email verified successfully 
-        </h1>
+        <div>
+          <h1 className="text-primary text-4xl">
+            <span>Your Email Is Verified Successfully!</span>
+            <br />
+            <span className="block text-center">
+              Continue Your Journey From{" "}
+              <Link to="/login" className="text-red-600">
+                Here
+              </Link>{" "}
+            </span>
+          </h1>
+        </div>
       )}
 
       {emailVerified === "false" && (

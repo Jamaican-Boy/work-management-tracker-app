@@ -164,15 +164,27 @@ exports.resetPassword = async (req, res) => {
   try {
     const tokenData = await Token.findOne({ token: req.body.token });
     if (tokenData) {
-      const password = req.body.password;
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(password, salt);
-      await User.findOneAndUpdate({
-        _id: tokenData.userid,
-        password: hashedPassword,
-      });
-      await Token.findOneAndDelete({ token: req.body.token });
-      res.send({ success: true, message: "Password reset successful" });
+      // Check if token has expired
+      const tokenCreationTime = moment(tokenData.createdAt);
+      const currentTime = moment();
+      const duration = moment.duration(currentTime.diff(tokenCreationTime));
+      const minutesElapsed = duration.asSeconds();
+
+      if (minutesElapsed > 1) {
+        // Token expired
+        await Token.findOneAndDelete({ token: req.body.token });
+        return res.send({ success: false, message: "Token expired" });
+      } else {
+        const password = req.body.password;
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        await User.findOneAndUpdate({
+          _id: tokenData.userid,
+          password: hashedPassword,
+        });
+        await Token.findOneAndDelete({ token: req.body.token });
+        res.send({ success: true, message: "Password Reset Successful" });
+      }
     } else {
       res.send({ success: false, message: "Invalid token" });
     }
@@ -183,6 +195,7 @@ exports.resetPassword = async (req, res) => {
 
 exports.verifyEmail = async (req, res) => {
   try {
+    // Find user by token
     const tokenData = await Token.findOne({ token: req.body.token });
 
     // Check if token exists
@@ -202,17 +215,27 @@ exports.verifyEmail = async (req, res) => {
           message: "Token expired. Please re-register.",
         });
       } else {
-        // Token is valid, update user verification status and delete token
-        await User.findOneAndUpdate(
-          { _id: tokenData.userid },
-          { isVerified: true }
-        );
-        await Token.findOneAndDelete({ token: req.body.token });
-        res.send({ success: true, message: "Email Verified Successfully" });
+        // Token is valid, check if user is already verified
+        const user = await User.findById(tokenData.userid);
+
+        if (user.isVerified) {
+          // User is already verified
+          res.send({
+            success: false,
+            message: "Email is already verified.",
+          });
+        } else {
+          // User is not verified, update verification status and delete token
+          await User.findOneAndUpdate(
+            { _id: tokenData.userid },
+            { isVerified: true }
+          );
+          await Token.findOneAndDelete({ token: req.body.token });
+          res.send({ success: true, message: "Email Verified Successfully" });
+        }
       }
     } else {
       // Token not found, delete user and inform them to re-register
-      await User.findOneAndDelete({ _id: tokenData.userid });
       res.send({
         success: false,
         message: "Token not found. Please re-register.",

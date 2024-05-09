@@ -11,7 +11,24 @@ exports.registerUser = async (req, res) => {
     const email = req.body.email;
     const userExists = await User.findOne({ email: email });
     if (userExists) {
-      throw new Error("User already exists");
+      // If user exists but is not verified, generate and send a verification token
+      if (!userExists.isVerified) {
+        // Check if there's an existing token for the user
+        let existingToken = await Token.findOne({ userid: userExists._id });
+        if (existingToken) {
+          // Delete the existing token
+          await Token.findOneAndDelete({ userid: userExists._id });
+        }
+        // Send email for verification
+        await sendEmail(userExists, "verifyemail");
+        return res.send({
+          success: true,
+          message:
+            "User already exists but is not verified. Verification email sent.",
+        });
+      } else {
+        throw new Error("User already exists");
+      }
     }
 
     // hash the password
@@ -55,7 +72,7 @@ exports.loginUser = async (req, res) => {
     }
 
     // Check if the user is verified
-    if (!user.isVerifed) {
+    if (!user.isVerified) {
       throw new Error("User is not verified");
     }
 
@@ -143,7 +160,7 @@ exports.verifyEmail = async (req, res) => {
   try {
     const tokenData = await Token.findOne({ token: req.body.token });
     if (tokenData) {
-      await User.findOneAndUpdate({ _id: tokenData.userid, isVerifed: true });
+      await User.findOneAndUpdate({ _id: tokenData.userid, isVerified: true });
       await Token.findOneAndDelete({ token: req.body.token });
       res.send({ success: true, message: "Email Verified Successfully" });
     } else {

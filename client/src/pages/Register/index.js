@@ -11,7 +11,13 @@ function Register() {
   const navigate = useNavigate();
   const { buttonLoading } = useSelector((state) => state.loaders);
   const dispatch = useDispatch();
+
   const onFinish = async (values) => {
+    if (values.password !== values.confirmPassword) {
+      message.error("Passwords do not match!");
+      return;
+    }
+
     try {
       dispatch(SetButtonLoading(true));
       const response = await RegisterUser(values);
@@ -39,42 +45,31 @@ function Register() {
       {/* Left */}
       <div className="flex justify-center items-center background">
         <div className="w-[420px]">
-          <h1 className="text-2xl text-gray-700 uppercase">
-            Lets get you started
-          </h1>
+          <h1 className="text-2xl text-gray-700 uppercase">Lets get you started</h1>
           <Divider />
           <Form layout="vertical" onFinish={onFinish}>
-            <Form.Item
-              label="First Name"
-              name="firstName"
-              rules={getAntdFormInputRules}
-            >
+            <Form.Item label="First Name" name="firstName" rules={getAntdFormInputRules}>
               <Input />
             </Form.Item>
-            <Form.Item
-              label="Last Name"
-              name="lastName"
-              rules={getAntdFormInputRules}
-            >
+            <Form.Item label="Last Name" name="lastName" rules={getAntdFormInputRules}>
               <Input />
             </Form.Item>
             <Form.Item label="Email" name="email" rules={getAntdFormInputRules}>
               <Input />
             </Form.Item>
+            <Form.Item label="Password" name="password" rules={getAntdFormInputRules}>
+              <Input type="password" />
+            </Form.Item>
             <Form.Item
-              label="Password"
-              name="password"
+              label="Confirm Password"
+              name="confirmPassword"
               rules={getAntdFormInputRules}
+              hasFeedback
             >
               <Input type="password" />
             </Form.Item>
 
-            <Button
-              type="primary"
-              htmlType="submit"
-              block
-              loading={buttonLoading}
-            >
+            <Button type="primary" htmlType="submit" block loading={buttonLoading}>
               {buttonLoading ? "Loading" : "Register"}
             </Button>
 
@@ -90,7 +85,7 @@ function Register() {
       <div className="bg-primary h-screen flex flex-col justify-center items-center">
         <div>
           <h1 className="text-7xl text-white">WORK-TRACKER</h1>
-          <span className=" flex justify-center text-white mt-5">
+          <span className="flex justify-center text-white mt-5">
             One place to track all your business records
           </span>
         </div>

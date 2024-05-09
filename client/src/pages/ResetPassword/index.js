@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { message } from "antd";
+import { message, Form, Input, Button } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import axios from "axios";
 
 function ResetPassword() {
   const [password, setPassword] = useState("");
-  const [confirmpassword, setConfirmPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const params = useParams();
   const navigate = useNavigate();
 
@@ -40,30 +40,47 @@ function ResetPassword() {
           CHANGE YOUR PASSWORD
         </h1>
 
-        <input
-          type="password"
-          className="py-1 px-3 border-2 border-secondary focus:outline-none w-full"
-          placeholder="Password"
-          onChange={(e) => setPassword(e.target.value)}
-          value={password}
-        />
-
-        <input
-          type="password"
-          className="py-1 px-3 border-2 border-secondary focus:outline-none w-full"
-          placeholder="Confirm Password"
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          value={confirmpassword}
-        />
-
-        <div className="flex justify-between items-end">
-          <button
-            className="py-1 px-5 text-white bg-primary"
-            onClick={resetPassword}
+        <Form onFinish={resetPassword}>
+          <Form.Item
+            name="password"
+            rules={[{ required: true, message: "Please input your password!" }]}
           >
-            RESET PASSWORD
-          </button>
-        </div>
+            <Input.Password
+              placeholder="Password"
+              onChange={(e) => setPassword(e.target.value)}
+              value={password}
+            />
+          </Form.Item>
+
+          <Form.Item
+            name="confirmPassword"
+            dependencies={['password']}
+            hasFeedback
+            rules={[
+              { required: true, message: 'Please confirm your password!' },
+              ({ getFieldValue }) => ({
+                validator(_, value) {
+                  if (!value || getFieldValue('password') === value) {
+                    return Promise.resolve();
+                  }
+                  return Promise.reject(new Error('The two passwords that you entered do not match!'));
+                },
+              }),
+            ]}
+          >
+            <Input.Password
+              placeholder="Confirm Password"
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              value={confirmPassword}
+            />
+          </Form.Item>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit">
+              RESET PASSWORD
+            </Button>
+          </Form.Item>
+        </Form>
       </div>
     </div>
   );

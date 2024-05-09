@@ -151,7 +151,7 @@ function Login() {
               <div className="flex justify-center mt-5">
                 <span
                   className="primary cursor-pointer text-blue-500"
-                  onClick={() => email && setShowForgotPassword(false)}
+                  onClick={() => setShowForgotPassword(false)}
                 >
                   Back to Login
                 </span>

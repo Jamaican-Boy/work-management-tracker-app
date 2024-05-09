@@ -125,11 +125,21 @@ exports.getLoggedInUser = async (req, res) => {
 exports.sendPasswordResetLink = async (req, res) => {
   try {
     const result = await User.findOne({ email: req.body.email });
-    await sendEmail(result, "resetpassword");
-    res.send({
-      success: true,
-      message: "Password reset link sent to your email successfully",
-    });
+
+    if (result) {
+      // If user found, send the password reset link
+      await sendEmail(result, "resetpassword");
+      res.send({
+        success: true,
+        message: "Password reset link sent to your email successfully",
+      });
+    } else {
+      // No user found with the email id
+      return res.send({
+        success: false,
+        message: "No user found with the provided email",
+      });
+    }
   } catch (error) {
     res.status(500).send(error);
   }

@@ -123,7 +123,7 @@ function Login() {
                   className="primary cursor-pointer text-red-500"
                   onClick={() => setShowForgotPassword(true)}
                 >
-                  Forgot Password
+                  Forgot Password?
                 </span>
               </div>
             </Form>

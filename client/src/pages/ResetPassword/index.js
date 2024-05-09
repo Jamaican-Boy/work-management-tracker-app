@@ -27,6 +27,7 @@ function ResetPassword() {
         message.error("Expired or Invalid Link");
       }
     } catch (error) {
+      console.error("Error:", error);
       message.error("Something went wrong");
     } finally {
       message.destroy("resettingPassword");

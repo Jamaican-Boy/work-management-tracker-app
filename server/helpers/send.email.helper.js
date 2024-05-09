@@ -1,6 +1,8 @@
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
 const Token = require("../models/token.model");
+const path = require("path");
+const ejs = require("ejs");
 
 require("dotenv").config();
 
@@ -27,20 +29,21 @@ module.exports = async (user, mailType) => {
       .hashSync(user._id.toString(), 10)
       .replaceAll("/", "");
 
-    // Calculate token expiry time (30 minutes from now)
-    const tokenExpiry = new Date();
-    tokenExpiry.setMinutes(tokenExpiry.getMinutes() + 30);
-
     const token = new Token({
       userid: user._id,
       token: encryptedToken,
-      expiry: tokenExpiry, // Adding expiry time to the token
     });
     await token.save();
 
     let emailContent, mailOptions;
     if (mailType == "verifyemail") {
-      emailContent = `<div><h1>Please click on the below link to verify your email address</h1> <a href="${getBaseUrl()}/verifyemail/${encryptedToken}">${encryptedToken}</a>  </div>`;
+      emailContent = await ejs.renderFile(
+        path.join(__dirname, "../views/verify.email.view.ejs"),
+        {
+          url: getBaseUrl(),
+          token: encryptedToken,
+        }
+      );
 
       mailOptions = {
         from: `"Deependra 👻" <${process.env.email_auth_user}>`,
@@ -48,9 +51,15 @@ module.exports = async (user, mailType) => {
         subject: "Work-Tracker Verify Email",
         html: emailContent,
       };
+      // `<div><h1>Please click on the below link to reset your password</h1> <a href="${getBaseUrl()}/resetpassword/${encryptedToken}">${encryptedToken}</a>  </div>`;
     } else {
-      emailContent = `<div><h1>Please click on the below link to reset your password</h1> <a href="${getBaseUrl()}/resetpassword/${encryptedToken}">${encryptedToken}</a>  </div>`;
-
+      emailContent = await ejs.renderFile(
+        path.join(__dirname, "../views/verify.password.view.ejs"),
+        {
+          url: getBaseUrl(),
+          token: encryptedToken,
+        }
+      );
       mailOptions = {
         from: `"Deependra 👻" <${process.env.email_auth_user}>`,
         to: user.email,

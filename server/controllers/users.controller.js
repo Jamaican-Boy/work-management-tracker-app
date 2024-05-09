@@ -164,27 +164,15 @@ exports.resetPassword = async (req, res) => {
   try {
     const tokenData = await Token.findOne({ token: req.body.token });
     if (tokenData) {
-      // Check if token has expired
-      const tokenCreationTime = moment(tokenData.createdAt);
-      const currentTime = moment();
-      const duration = moment.duration(currentTime.diff(tokenCreationTime));
-      const minutesElapsed = duration.asSeconds();
-
-      if (minutesElapsed > 1) {
-        // Token expired
-        await Token.findOneAndDelete({ token: req.body.token });
-        return res.send({ success: false, message: "Token expired" });
-      } else {
-        const password = req.body.password;
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-        await User.findOneAndUpdate({
-          _id: tokenData.userid,
-          password: hashedPassword,
-        });
-        await Token.findOneAndDelete({ token: req.body.token });
-        res.send({ success: true, message: "Password Reset Successful" });
-      }
+      const password = req.body.password;
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      await User.findOneAndUpdate({
+        _id: tokenData.userid,
+        password: hashedPassword,
+      });
+      await Token.findOneAndDelete({ token: req.body.token });
+      res.send({ success: true, message: "Password reset successful" });
     } else {
       res.send({ success: false, message: "Invalid token" });
     }

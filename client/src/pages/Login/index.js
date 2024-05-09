@@ -35,6 +35,12 @@ function Login() {
 
   const sendResetPasswordLink = async () => {
     try {
+      // Check if email is empty or not a valid email address
+      if (!email || !isValidEmail(email)) {
+        message.error("Please enter a valid email address.");
+        return;
+      }
+
       message.loading({
         content: "Sending reset password link...",
         key: "resetPassword",
@@ -62,6 +68,12 @@ function Login() {
       navigate("/");
     }
   }, [navigate]);
+
+  // Function to validate email format
+  const isValidEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
 
   return (
     <div className="grid grid-cols-2">
@@ -103,12 +115,12 @@ function Login() {
               >
                 {buttonLoading ? "Loading" : "Login"}
               </Button>
-              <div className="flex justify-center mt-5">
+              <div className="flex justify-between mt-5">
                 <span>
                   Don't have an account? <Link to="/register">Register</Link>
                 </span>
                 <span
-                  className="cursor-pointer"
+                  className="primary cursor-pointer text-red-500"
                   onClick={() => setShowForgotPassword(true)}
                 >
                   Forgot Password
@@ -127,7 +139,7 @@ function Login() {
             <Form>
               <Form.Item>
                 <Input
-                  type="text"
+                  type="email"
                   placeholder="Enter your email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -138,8 +150,8 @@ function Login() {
               </Button>
               <div className="flex justify-center mt-5">
                 <span
-                  className="cursor-pointer"
-                  onClick={() => setShowForgotPassword(false)}
+                  className="primary cursor-pointer text-blue-500"
+                  onClick={() => email && setShowForgotPassword(false)}
                 >
                   Back to Login
                 </span>

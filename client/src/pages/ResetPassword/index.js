@@ -43,7 +43,7 @@ function ResetPassword() {
         <input
           type="password"
           className="py-1 px-3 border-2 border-secondary focus:outline-none w-full"
-          placeholder="password"
+          placeholder="Password"
           onChange={(e) => setPassword(e.target.value)}
           value={password}
         />
@@ -51,7 +51,7 @@ function ResetPassword() {
         <input
           type="password"
           className="py-1 px-3 border-2 border-secondary focus:outline-none w-full"
-          placeholder="confirm password"
+          placeholder="Confirm Password"
           onChange={(e) => setConfirmPassword(e.target.value)}
           value={confirmpassword}
         />

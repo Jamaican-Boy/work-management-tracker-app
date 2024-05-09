@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import axios from "axios";
-
 import { useDispatch } from "react-redux";
 import { SetButtonLoading } from "../../redux/loadersSlice";
+
 function VerifyEmail() {
   const [emailVerified, setEmailVerified] = useState("");
   const params = useParams();
-
   const dispatch = useDispatch();
 
   const verifyToken = async () => {
@@ -44,12 +43,24 @@ function VerifyEmail() {
 
       {emailVerified === "true" && (
         <h1 className="text-primary text-4xl">
-          Your email verified successfully
+          Your email verified successfully 
         </h1>
       )}
 
       {emailVerified === "false" && (
-        <h1 className="text-primary text-4xl">Invalid or Expired Token</h1>
+        <div>
+          <h1 className="text-primary text-4xl">
+            <span>Invalid or Expired Token</span>
+            <br />
+            <span className="block text-center">
+              Please{" "}
+              <Link to="/register" className="text-red-600">
+                Register
+              </Link>{" "}
+              Again!
+            </span>
+          </h1>
+        </div>
       )}
     </div>
   );

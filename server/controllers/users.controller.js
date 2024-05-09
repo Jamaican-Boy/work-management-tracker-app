@@ -3,47 +3,62 @@ const Token = require("../models/token.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const sendEmail = require("../helpers/send.email.helper");
-
+const moment = require("moment"); // Import moment library for date manipulation
 // register a new user
 exports.registerUser = async (req, res) => {
   try {
-    // check if the user already exists
+    // Check if the user already exists
     const email = req.body.email;
-    const userExists = await User.findOne({ email: email });
-    if (userExists) {
-      // If user exists but is not verified, generate and send a verification token
-      if (!userExists.isVerified) {
+    let user = await User.findOne({ email: email });
+
+    // If user exists but is not verified, update user details and send a verification token
+    if (user) {
+      if (!user.isVerified) {
+        // Update user details if provided in the request
+        if (req.body.firstName) user.firstName = req.body.firstName;
+        if (req.body.lastName) user.lastName = req.body.lastName;
+        if (req.body.password) {
+          const salt = await bcrypt.genSalt(10);
+          const hashedPassword = await bcrypt.hash(req.body.password, salt);
+          user.password = hashedPassword;
+        }
+        // Save the updated user
+        user = await user.save();
+
         // Check if there's an existing token for the user
-        let existingToken = await Token.findOne({ userid: userExists._id });
+        let existingToken = await Token.findOne({ userid: user._id });
         if (existingToken) {
           // Delete the existing token
-          await Token.findOneAndDelete({ userid: userExists._id });
+          await Token.findOneAndDelete({ userid: user._id });
         }
         // Send email for verification
-        await sendEmail(userExists, "verifyemail");
+        await sendEmail(user, "verifyemail");
+
         return res.send({
           success: true,
           message:
-            "User already exists but is not verified. Verification email sent.",
+            "User already exists but is not verified. Updated details and verification email sent.",
         });
       } else {
         throw new Error("User already exists");
       }
     }
 
-    // hash the password
+    // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
     req.body.password = hashedPassword;
 
-    // save the user
-    const user = new User(req.body);
+    // Save the user
+    user = new User(req.body);
     const result = await user.save();
-    // send mail after successful registration
+
+    // Send mail after successful registration
     await sendEmail(result, "verifyemail");
+
     res.send({
       success: true,
-      message: "Registration successful , Please verify your email",
+      message: "Registration successful. Please verify your email.",
     });
   } catch (error) {
     res.send({
@@ -169,12 +184,39 @@ exports.resetPassword = async (req, res) => {
 exports.verifyEmail = async (req, res) => {
   try {
     const tokenData = await Token.findOne({ token: req.body.token });
+
+    // Check if token exists
     if (tokenData) {
-      await User.findOneAndUpdate({ _id: tokenData.userid, isVerified: true });
-      await Token.findOneAndDelete({ token: req.body.token });
-      res.send({ success: true, message: "Email Verified Successfully" });
+      // Check if token creation time has exceeded 30 minutes
+      const tokenCreationTime = moment(tokenData.createdAt);
+      const currentTime = moment();
+      const duration = moment.duration(currentTime.diff(tokenCreationTime));
+      const minutesElapsed = duration.asMinutes();
+
+      if (minutesElapsed > 30) {
+        // Token expired, delete token and associated user
+        await Token.findOneAndDelete({ token: req.body.token });
+        await User.findOneAndDelete({ _id: tokenData.userid });
+        res.send({
+          success: false,
+          message: "Token expired. Please re-register.",
+        });
+      } else {
+        // Token is valid, update user verification status and delete token
+        await User.findOneAndUpdate(
+          { _id: tokenData.userid },
+          { isVerified: true }
+        );
+        await Token.findOneAndDelete({ token: req.body.token });
+        res.send({ success: true, message: "Email Verified Successfully" });
+      }
     } else {
-      res.send({ success: false, message: "Invalid token" });
+      // Token not found, delete user and inform them to re-register
+      await User.findOneAndDelete({ _id: tokenData.userid });
+      res.send({
+        success: false,
+        message: "Token not found. Please re-register.",
+      });
     }
   } catch (error) {
     res.status(500).send(error);

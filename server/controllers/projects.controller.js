@@ -119,6 +119,14 @@ exports.addMemberToProject = async (req, res) => {
         message: "User not found",
       });
     }
+
+    if (!user.isVerified) {
+      return res.send({
+        success: false,
+        message: "User email is not verified",
+      });
+    }
+
     await Project.findByIdAndUpdate(projectId, {
       $push: {
         members: {

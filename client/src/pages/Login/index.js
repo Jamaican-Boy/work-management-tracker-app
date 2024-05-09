@@ -105,7 +105,7 @@ function Login() {
                 name="password"
                 rules={getAntdFormInputRules}
               >
-                <Input type="password" />
+                <Input.Password type="password" />
               </Form.Item>
               <Button
                 type="primary"

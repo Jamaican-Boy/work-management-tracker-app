@@ -58,15 +58,15 @@ function Register() {
               <Input />
             </Form.Item>
             <Form.Item label="Password" name="password" rules={getAntdFormInputRules}>
-              <Input type="password" />
+              <Input.Password type="password" />
             </Form.Item>
             <Form.Item
               label="Confirm Password"
               name="confirmPassword"
               rules={getAntdFormInputRules}
-              hasFeedback
+
             >
-              <Input type="password" />
+              <Input.Password type="password" />
             </Form.Item>
 
             <Button type="primary" htmlType="submit" block loading={buttonLoading}>

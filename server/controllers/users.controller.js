@@ -1,8 +1,8 @@
 const User = require("../models/user.model");
+const Token = require("../models/token.model");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-
-const sendMail = require("../helpers/sendmail.helper");
+const sendEmail = require("../helpers/sendEmail");
 
 // register a new user
 exports.registerUser = async (req, res) => {
@@ -21,12 +21,12 @@ exports.registerUser = async (req, res) => {
 
     // save the user
     const user = new User(req.body);
-    await user.save();
+    const result = await user.save();
     // send mail after successful registration
-    sendMail(email);
+    await sendEmail(result, "verifyemail");
     res.send({
       success: true,
-      message: "User registered successfully",
+      message: "Registration successful , Please verify your email",
     });
   } catch (error) {
     res.send({
@@ -39,13 +39,13 @@ exports.registerUser = async (req, res) => {
 // login a user
 exports.loginUser = async (req, res) => {
   try {
-    // check if the user exists
+    // Check if the user exists
     const user = await User.findOne({ email: req.body.email });
     if (!user) {
       throw new Error("User does not exist");
     }
 
-    // check if the password is correct
+    // Check if the password is correct
     const passwordCorrect = await bcrypt.compare(
       req.body.password,
       user.password
@@ -54,8 +54,20 @@ exports.loginUser = async (req, res) => {
       throw new Error("Invalid password");
     }
 
-    // create and assign a token
-    const token = jwt.sign({ userId: user._id }, process.env.jwt_secret, {
+    // Check if the user is verified
+    if (!user.isVerifed) {
+      throw new Error("User is not verified");
+    }
+
+    // Prepare data to be sent to the frontend
+    const dataToBeSentToFrontend = {
+      userId: user._id,
+      email: user.email,
+      name: user.firstName + " " + user.lastName,
+    };
+
+    // Create and assign a token
+    const token = jwt.sign(dataToBeSentToFrontend, process.env.jwt_secret, {
       expiresIn: "1d",
     });
 
@@ -90,5 +102,54 @@ exports.getLoggedInUser = async (req, res) => {
       success: false,
       message: error.message,
     });
+  }
+};
+
+exports.sendPasswordResetLink = async (req, res) => {
+  try {
+    const result = await User.findOne({ email: req.body.email });
+    await sendEmail(result, "resetpassword");
+    res.send({
+      success: true,
+      message: "Password reset link sent to your email successfully",
+    });
+  } catch (error) {
+    res.status(500).send(error);
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  try {
+    const tokenData = await Token.findOne({ token: req.body.token });
+    if (tokenData) {
+      const password = req.body.password;
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+      await User.findOneAndUpdate({
+        _id: tokenData.userid,
+        password: hashedPassword,
+      });
+      await Token.findOneAndDelete({ token: req.body.token });
+      res.send({ success: true, message: "Password reset successful" });
+    } else {
+      res.send({ success: false, message: "Invalid token" });
+    }
+  } catch (error) {
+    res.status(500).send(error);
+  }
+};
+
+exports.verifyEmail = async (req, res) => {
+  try {
+    const tokenData = await Token.findOne({ token: req.body.token });
+    if (tokenData) {
+      await User.findOneAndUpdate({ _id: tokenData.userid, isVerifed: true });
+      await Token.findOneAndDelete({ token: req.body.token });
+      res.send({ success: true, message: "Email Verified Successfully" });
+    } else {
+      res.send({ success: false, message: "Invalid token" });
+    }
+  } catch (error) {
+    res.status(500).send(error);
   }
 };

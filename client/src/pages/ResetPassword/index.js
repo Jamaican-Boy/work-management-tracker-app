@@ -13,11 +13,6 @@ function ResetPassword() {
 
   const resetPassword = async () => {
     try {
-      message.loading({
-        content: "Resetting password...",
-        key: "resettingPassword",
-      });
-
       const response = await axios.post("/api/users/reset-password", {
         password,
         token: params.token,
@@ -29,9 +24,7 @@ function ResetPassword() {
         message.error(response.data.message);
       }
     } catch (error) {
-      message.error(error.message); 
-    } finally {
-      message.destroy("resettingPassword");
+      message.error(error.message);
     }
   };
 

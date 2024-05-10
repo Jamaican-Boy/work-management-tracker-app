@@ -167,13 +167,9 @@ exports.sendPasswordResetLink = async (req, res) => {
       if (result.isVerified) {
         try {
           // If user found and verified, delete existing token if it exists
-          const deletedToken = await PasswordToken.findOneAndDelete({
+          await PasswordToken.findOneAndDelete({
             userid: result._id,
           });
-
-          if (!deletedToken) {
-            console.log("No token found for deletion.");
-          }
 
           // Send the password reset link
           await sendEmail(result, "resetpassword");

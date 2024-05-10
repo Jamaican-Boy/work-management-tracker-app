@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import axios from "axios";
 import { useDispatch } from "react-redux";
 import { SetButtonLoading } from "../../redux/loadersSlice";
+import axios from "axios";
 
 function VerifyEmail() {
   const [emailVerified, setEmailVerified] = useState("");

@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { message, Form, Input, Button } from "antd";
+import { message, Form, Input, Button, Tooltip } from "antd";
 import { useNavigate } from "react-router-dom";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { QuestionCircleOutlined } from "@ant-design/icons";
 
 function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -16,6 +17,14 @@ function ResetPassword() {
         content: "Resetting password...",
         key: "resettingPassword",
       });
+
+      // Password validation
+      const isValidPassword = validatePassword(password);
+      if (!isValidPassword) {
+        message.error("Password does not meet the requirements.");
+        return;
+      }
+
       const response = await axios.post("/api/users/reset-password", {
         password,
         token: params.token,
@@ -27,18 +36,40 @@ function ResetPassword() {
         message.error("Expired or Invalid Link");
       }
     } catch (error) {
-      console.error("Error:", error);
-      message.error("Something went wrong");
+      message.error("Password cannot be the previous password");
     } finally {
       message.destroy("resettingPassword");
     }
   };
 
+  // Password validation function
+  const validatePassword = (password) => {
+    // Add your password validation rules here
+    // For example, checking length, special characters, etc.
+    return password.length >= 8; // Example rule: Password must be at least 8 characters long
+  };
+
+  // Password rules tooltip content
+  const getPasswordRulesText = () => {
+    return (
+      <div>
+        <div>At least 8 characters</div>
+        <div>At least one uppercase letter</div>
+        <div>At least one lowercase letter</div>
+        <div>At least one number</div>
+        <div>At least one special character</div>
+      </div>
+    );
+  };
+
   return (
     <div className="flex justify-center items-center h-screen">
       <div className="w-[400px] flex space-y-5 flex-col p-5 shadow-lg border border-gray-300">
-        <h1 className="font-semibold text-3xl text-primary">
+        <h1 className="font-semibold text-3xl text-primary flex items-center">
           CHANGE YOUR PASSWORD
+          <Tooltip title={getPasswordRulesText()} placement="right">
+            <QuestionCircleOutlined style={{ marginLeft: "5px" }} />
+          </Tooltip>
         </h1>
 
         <Form onFinish={resetPassword}>

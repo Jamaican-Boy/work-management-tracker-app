@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { GetProjectById } from "../../apicalls/projects";
-import { GetAllTasks } from "../../apicalls/tasks";
 import Divider from "../../components/Divider";
 import { SetLoading } from "../../redux/loadersSlice";
 import { getDateFormat } from "../../utils/helpers";

@@ -1,8 +1,10 @@
-const User = require("../models/user.model");
-const Token = require("../models/token.model");
 const bcrypt = require("bcryptjs");
+const moment = require("moment");
 const jwt = require("jsonwebtoken");
+const Token = require("../models/token.model");
+const User = require("../models/user.model");
 const sendEmail = require("../helpers/send.email.helper");
+const passwordRegex = require("../helpers/password.policy.helper");
 
 // register a new user
 exports.registerUser = async (req, res) => {
@@ -18,8 +20,15 @@ exports.registerUser = async (req, res) => {
         if (req.body.firstName) user.firstName = req.body.firstName;
         if (req.body.lastName) user.lastName = req.body.lastName;
         if (req.body.password) {
+          // Check password requirements
+          const password = req.body.password;
+          if (!passwordRegex.test(password)) {
+            throw new Error(
+              "Password must be 8-20 characters long and contain at least one uppercase letter, one lowercase letter, one special symbol, and one number."
+            );
+          }
           const salt = await bcrypt.genSalt(10);
-          const hashedPassword = await bcrypt.hash(req.body.password, salt);
+          const hashedPassword = await bcrypt.hash(password, salt);
           user.password = hashedPassword;
         }
         // Save the updated user
@@ -45,8 +54,14 @@ exports.registerUser = async (req, res) => {
     }
 
     // Hash the password
+    const password = req.body.password;
+    if (!passwordRegex.test(password)) {
+      throw new Error(
+        "Password must be 8-20 characters long and contain at least one uppercase letter, one lowercase letter, one special symbol, and one number."
+      );
+    }
     const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(req.body.password, salt);
+    const hashedPassword = await bcrypt.hash(password, salt);
     req.body.password = hashedPassword;
 
     // Save the user
@@ -171,12 +186,35 @@ exports.resetPassword = async (req, res) => {
         .send({ message: "Token is invalid", success: false });
     }
 
+    // Password validation
+    if (!passwordRegex.test(password)) {
+      return res.status(400).send({
+        message:
+          "Password must be 8-20 characters long and contain at least one uppercase letter, one lowercase letter, one special symbol, and one number.",
+        success: false,
+      });
+    }
+
     const user = await User.findOne({ _id: tokenObj.userid.toString() });
+
+    // Check if the new password is the same as the previous password
+    const isSamePassword = await bcrypt.compare(password, user.password);
+    if (isSamePassword) {
+      return res.status(400).send({
+        message: "New password cannot be the same as the previous password",
+        success: false,
+      });
+    }
+
+    // Generate salt and hash the new password
     const salt = await bcrypt.genSalt(10);
-    password = await bcrypt.hash(password, salt);
-    user.password = password;
+    const newPasswordHash = await bcrypt.hash(password, salt);
+
+    // Update user's password and delete the token
+    user.password = newPasswordHash;
     await user.save();
     await Token.findOneAndDelete({ token });
+
     res
       .status(200)
       .send({ message: "Password reset successfully", success: true });
@@ -191,41 +229,50 @@ exports.verifyEmail = async (req, res) => {
     // Find user by token
     const tokenData = await Token.findOne({ token: req.body.token });
 
-    if (!tokenData) {
-      return res.send({
+    // Check if token exists
+    if (tokenData) {
+      // Check if token creation time has exceeded 30 minutes
+      const tokenCreationTime = moment(tokenData.createdAt);
+      const currentTime = moment();
+      const duration = moment.duration(currentTime.diff(tokenCreationTime));
+      const minutesElapsed = duration.asMinutes();
+
+      if (minutesElapsed > 30) {
+        // Token expired, delete token and associated user
+        await Token.findOneAndDelete({ token: req.body.token });
+        await User.findOneAndDelete({ _id: tokenData.userid });
+        res.send({
+          success: false,
+          message: "Token expired. Please re-register.",
+        });
+      } else {
+        // Token is valid, check if user is already verified
+        const user = await User.findById(tokenData.userid);
+
+        if (user.isVerified) {
+          // User is already verified
+          res.send({
+            success: false,
+            message: "Email is already verified.",
+          });
+        } else {
+          // User is not verified, update verification status and delete token
+          await User.findOneAndUpdate(
+            { _id: tokenData.userid },
+            { isVerified: true }
+          );
+          await Token.findOneAndDelete({ token: req.body.token });
+          res.send({ success: true, message: "Email Verified Successfully" });
+        }
+      }
+    } else {
+      // Token not found, delete user and inform them to re-register
+      res.send({
         success: false,
-        message:
-          "Token expired or Invalid. Please re-register with your details.",
+        message: "Token not found. Please re-register.",
       });
     }
-
-    const user = await User.findById(tokenData.userid);
-
-    if (!user) {
-      return res.send({
-        success: false,
-        message: "User not found.",
-      });
-    }
-
-    if (user.isVerified) {
-      // User is already verified
-      return res.send({
-        success: false,
-        message: "Email is already verified.",
-      });
-    }
-
-    // User is not verified, update verification status and delete token
-    await User.findByIdAndUpdate(tokenData.userid, { isVerified: true });
-
-    await Token.findOneAndDelete({ token: req.body.token });
-
-    return res.send({ success: true, message: "Email Verified Successfully" });
   } catch (error) {
-    console.error(error);
-    return res
-      .status(500)
-      .send({ success: false, message: "Internal Server Error" });
+    res.status(500).send(error);
   }
 };

@@ -37,15 +37,12 @@ function TaskForm({
       // ! BUG
       if (task) {
         // update task
-        console.log(task);
         response = await UpdateTask({
           ...values,
           project: project._id,
           assignedTo: task.assignedTo._id,
           _id: task._id,
         });
-
-        console.log(response);
       } else {
         // create task
         const assignedBy = user._id;

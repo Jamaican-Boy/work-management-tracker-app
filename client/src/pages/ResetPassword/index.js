@@ -18,13 +18,6 @@ function ResetPassword() {
         key: "resettingPassword",
       });
 
-      // Password validation
-      const isValidPassword = validatePassword(password);
-      if (!isValidPassword) {
-        message.error("Password does not meet the requirements.");
-        return;
-      }
-
       const response = await axios.post("/api/users/reset-password", {
         password,
         token: params.token,
@@ -33,20 +26,13 @@ function ResetPassword() {
         message.success(response.data.message);
         navigate("/login");
       } else {
-        message.error("Expired or Invalid Link");
+        message.error(response.data.message);
       }
     } catch (error) {
-      message.error("Password cannot be the previous password");
+      message.error(error.message); 
     } finally {
       message.destroy("resettingPassword");
     }
-  };
-
-  // Password validation function
-  const validatePassword = (password) => {
-    // Add your password validation rules here
-    // For example, checking length, special characters, etc.
-    return password.length >= 8; // Example rule: Password must be at least 8 characters long
   };
 
   // Password rules tooltip content

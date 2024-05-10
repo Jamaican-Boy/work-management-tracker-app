@@ -1,7 +1,8 @@
 const bcrypt = require("bcryptjs");
 const moment = require("moment");
 const jwt = require("jsonwebtoken");
-const Token = require("../models/token.model");
+const EmailToken = require("../models/verify.email.model");
+const PasswordToken = require("../models/verify.password.model");
 const User = require("../models/user.model");
 const sendEmail = require("../helpers/send.email.helper");
 const passwordRegex = require("../helpers/password.policy.helper");
@@ -24,7 +25,7 @@ exports.registerUser = async (req, res) => {
           const password = req.body.password;
           if (!passwordRegex.test(password)) {
             throw new Error(
-              "Password must be 8-20 characters long and contain at least one uppercase letter, one lowercase letter, one special symbol, and one number."
+              "Password reset link sent to your email successfully"
             );
           }
           const salt = await bcrypt.genSalt(10);
@@ -35,13 +36,17 @@ exports.registerUser = async (req, res) => {
         user = await user.save();
 
         // Check if there's an existing token for the user
-        let existingToken = await Token.findOne({ userid: user._id });
+        let existingToken = await EmailToken.findOne({ userid: user._id });
         if (existingToken) {
           // Delete the existing token
-          await Token.findOneAndDelete({ userid: user._id });
+          await EmailToken.findOneAndDelete({ userid: user._id });
         }
+
+        // Assuming token is passed in the request body
+        const newToken = req.body.token;
+
         // Send email for verification
-        await sendEmail(user, "verifyemail");
+        await sendEmail(user, "verifyemail", newToken);
 
         return res.send({
           success: true,
@@ -56,9 +61,7 @@ exports.registerUser = async (req, res) => {
     // Hash the password
     const password = req.body.password;
     if (!passwordRegex.test(password)) {
-      throw new Error(
-        "Password must be 8-20 characters long and contain at least one uppercase letter, one lowercase letter, one special symbol, and one number."
-      );
+      throw new Error("Your Password Is Weak, Please See The ? for guidance");
     }
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -68,8 +71,11 @@ exports.registerUser = async (req, res) => {
     user = new User(req.body);
     const result = await user.save();
 
+    // Assuming token is passed in the request body
+    const token = req.body.token;
+
     // Send mail after successful registration
-    await sendEmail(result, "verifyemail");
+    await sendEmail(result, "verifyemail", token);
 
     res.send({
       success: true,
@@ -154,15 +160,42 @@ exports.getLoggedInUser = async (req, res) => {
 
 exports.sendPasswordResetLink = async (req, res) => {
   try {
+    // Find the user by email
     const result = await User.findOne({ email: req.body.email });
 
     if (result) {
-      // If user found, send the password reset link
-      await sendEmail(result, "resetpassword");
-      res.send({
-        success: true,
-        message: "Password reset link sent to your email successfully",
-      });
+      if (result.isVerified) {
+        try {
+          // If user found and verified, delete existing token if it exists
+          const deletedToken = await PasswordToken.findOneAndDelete({
+            userid: result._id,
+          });
+
+          if (!deletedToken) {
+            console.log("No token found for deletion.");
+          }
+
+          // Send the password reset link
+          await sendEmail(result, "resetpassword");
+
+          return res.send({
+            success: true,
+            message: "Password reset link sent to your email successfully",
+          });
+        } catch (deleteError) {
+          console.error("Error deleting token:", deleteError);
+          return res
+            .status(500)
+            .send({ success: false, message: "Error deleting token" });
+        }
+      } else {
+        // User found but not verified
+        return res.send({
+          success: false,
+          message:
+            "Your account is not verified. Please verify your email address first.",
+        });
+      }
     } else {
       // No user found with the email id
       return res.send({
@@ -178,19 +211,16 @@ exports.sendPasswordResetLink = async (req, res) => {
 exports.resetPassword = async (req, res) => {
   try {
     let { token, password } = req.body;
-    const tokenObj = await Token.findOne({ token });
+    const tokenObj = await PasswordToken.findOne({ token });
 
     if (!tokenObj) {
-      return res
-        .status(200)
-        .send({ message: "Token is invalid", success: false });
+      return res.send({ message: "Token is invalid", success: false });
     }
 
     // Password validation
     if (!passwordRegex.test(password)) {
-      return res.status(400).send({
-        message:
-          "Password must be 8-20 characters long and contain at least one uppercase letter, one lowercase letter, one special symbol, and one number.",
+      return res.send({
+        message: "Your password does not meet the requirements",
         success: false,
       });
     }
@@ -200,7 +230,7 @@ exports.resetPassword = async (req, res) => {
     // Check if the new password is the same as the previous password
     const isSamePassword = await bcrypt.compare(password, user.password);
     if (isSamePassword) {
-      return res.status(400).send({
+      return res.send({
         message: "New password cannot be the same as the previous password",
         success: false,
       });
@@ -213,21 +243,20 @@ exports.resetPassword = async (req, res) => {
     // Update user's password and delete the token
     user.password = newPasswordHash;
     await user.save();
-    await Token.findOneAndDelete({ token });
+    await PasswordToken.findOneAndDelete({ token });
 
     res
       .status(200)
       .send({ message: "Password reset successfully", success: true });
   } catch (error) {
     res.status(400).send(error);
-    console.log(error);
   }
 };
 
 exports.verifyEmail = async (req, res) => {
   try {
     // Find user by token
-    const tokenData = await Token.findOne({ token: req.body.token });
+    const tokenData = await EmailToken.findOne({ token: req.body.token });
 
     // Check if token exists
     if (tokenData) {
@@ -239,7 +268,7 @@ exports.verifyEmail = async (req, res) => {
 
       if (minutesElapsed > 30) {
         // Token expired, delete token and associated user
-        await Token.findOneAndDelete({ token: req.body.token });
+        await EmailToken.findOneAndDelete({ token: req.body.token });
         await User.findOneAndDelete({ _id: tokenData.userid });
         res.send({
           success: false,
@@ -261,7 +290,7 @@ exports.verifyEmail = async (req, res) => {
             { _id: tokenData.userid },
             { isVerified: true }
           );
-          await Token.findOneAndDelete({ token: req.body.token });
+          await EmailToken.findOneAndDelete({ token: req.body.token });
           res.send({ success: true, message: "Email Verified Successfully" });
         }
       }

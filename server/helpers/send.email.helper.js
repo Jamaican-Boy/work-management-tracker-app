@@ -1,8 +1,8 @@
 const nodemailer = require("nodemailer");
-const bcrypt = require("bcryptjs");
-const Token = require("../models/token.model");
 const path = require("path");
 const ejs = require("ejs");
+
+const generateToken = require("../utils/generate.token.utils");
 
 require("dotenv").config();
 
@@ -25,23 +25,13 @@ module.exports = async (user, mailType) => {
       },
     });
 
-    const encryptedToken = bcrypt
-      .hashSync(user._id.toString(), 10)
-      .replaceAll("/", "");
-
-    const token = new Token({
-      userid: user._id,
-      token: encryptedToken,
-    });
-    await token.save();
-
     let emailContent, mailOptions;
     if (mailType == "verifyemail") {
       emailContent = await ejs.renderFile(
         path.join(__dirname, "../views/verify.email.view.ejs"),
         {
           url: getBaseUrl(),
-          token: encryptedToken,
+          token: await generateToken("email", user),
         }
       );
 
@@ -56,7 +46,7 @@ module.exports = async (user, mailType) => {
         path.join(__dirname, "../views/verify.password.view.ejs"),
         {
           url: getBaseUrl(),
-          token: encryptedToken,
+          token: await generateToken("password", user),
         }
       );
       mailOptions = {

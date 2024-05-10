@@ -19,11 +19,11 @@ const tokenSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-const tokenModel = mongoose.model("token", tokenSchema);
+const emailTokenModel = mongoose.model("emailToken", tokenSchema);
 
 // Create TTL index
 tokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
-module.exports = tokenModel;
+module.exports = emailTokenModel;
 
 

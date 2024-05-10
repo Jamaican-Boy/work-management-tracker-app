@@ -51,7 +51,6 @@ module.exports = async (user, mailType) => {
         subject: "Work-Tracker Verify Email",
         html: emailContent,
       };
-      // `<div><h1>Please click on the below link to reset your password</h1> <a href="${getBaseUrl()}/resetpassword/${encryptedToken}">${encryptedToken}</a>  </div>`;
     } else {
       emailContent = await ejs.renderFile(
         path.join(__dirname, "../views/verify.password.view.ejs"),

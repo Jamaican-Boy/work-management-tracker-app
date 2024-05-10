@@ -28,4 +28,12 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+// Create a compound index on isVerified and createdAt
+userSchema.index({ isVerified: 1, createdAt: 1 });
+
+// Create TTL index to expire documents after 1 hour
+userSchema.index({ createdAt: 1 }, { expireAfterSeconds: 3600 });
+
 module.exports = mongoose.model("user", userSchema);
+
+

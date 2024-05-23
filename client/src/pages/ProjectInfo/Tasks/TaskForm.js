@@ -210,6 +210,7 @@ function TaskForm({
             <Button type="default" onClick={() => setShowTaskForm(false)}>
               Cancel
             </Button>
+
             <Button type="primary" onClick={uploadImage} disabled={!file}>
               Upload
             </Button>

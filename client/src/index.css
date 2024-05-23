@@ -3,6 +3,7 @@
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
 
+
 * {
   box-sizing: border-box;
   padding: 0;
@@ -15,7 +16,7 @@ html {
   background-color: #ebe9e1 !important;
 }
 
-button {
+/* button {
   height: 40px !important;
   border-radius: 0 !important;
   box-shadow: none !important;
@@ -28,7 +29,7 @@ select {
   border: 1px solid #bbbbbb !important;
   width: 100% !important;
   padding-left: 15px !important;
-}
+} */
 
 textarea {
   border-radius: 0 !important;

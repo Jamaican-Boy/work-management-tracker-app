@@ -3,7 +3,14 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { GetLoggedInUser } from "../apicalls/users";
-import { SetNotifications, SetUser } from "../redux/usersSlice";
+import { GetAllChats } from "../apicalls/chatApi/chats";
+import { GetAllUsers } from "../apicalls/chatApi/users";
+import {
+  SetNotifications,
+  SetUser,
+  SetAllChats,
+  SetAllUsers,
+} from "../redux/usersSlice";
 import { SetLoading } from "../redux/loadersSlice";
 import { GetAllNotifications } from "../apicalls/notifications";
 import { Avatar, Badge } from "antd";
@@ -14,13 +21,18 @@ function ProtectedPage({ children }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user, notifications } = useSelector((state) => state.users);
+
   const getUser = async () => {
     try {
       dispatch(SetLoading(true));
       const response = await GetLoggedInUser();
+      const allUsersResponse = await GetAllUsers();
+      const allChatsResponse = await GetAllChats();
       dispatch(SetLoading(false));
       if (response.success) {
         dispatch(SetUser(response.data));
+        dispatch(SetAllUsers(allUsersResponse.data));
+        dispatch(SetAllChats(allChatsResponse.data));
       } else {
         throw new Error(response.message);
       }
@@ -72,7 +84,7 @@ function ProtectedPage({ children }) {
 
           <div className="flex items-center bg-white px-5 py-2 rounded">
             <span
-              className=" text-primary cursor-pointer underline mr-2"
+              className="text-primary cursor-pointer underline mr-4"
               onClick={() => navigate("/profile")}
             >
               {user?.firstName}
@@ -87,17 +99,23 @@ function ProtectedPage({ children }) {
               <Avatar
                 shape="square"
                 size="large"
-                icon={
-                  <i className="ri-notification-line text-white rounded-full"></i>
-                }
+                icon={<i className="ri-chat-3-line"></i>}
+                onClick={() => navigate("/chat")}
+                className="mr-4"
+              />
+              <Avatar
+                shape="square"
+                size="large"
+                icon={<i className="ri-notification-line text-white rounded-full"></i>}
                 onClick={() => {
                   setShowNotifications(true);
                 }}
+                className="mr-4"
               />
             </Badge>
 
             <i
-              className="ri-logout-box-r-line ml-10 text-primary"
+              className="ri-logout-box-r-line ml-4 text-primary"
               onClick={() => {
                 localStorage.removeItem("token");
                 navigate("/login");

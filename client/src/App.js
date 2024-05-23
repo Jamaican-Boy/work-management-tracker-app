@@ -5,6 +5,7 @@ import Spinner from "./components/Spinner";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
+import Chat from "./pages/Chat";
 import ProjectInfo from "./pages/ProjectInfo";
 import Register from "./pages/Register";
 import PageNotFound from "./pages/404";
@@ -40,6 +41,14 @@ function App() {
             element={
               <ProtectedPage>
                 <Profile />
+              </ProtectedPage>
+            }
+          />
+            <Route
+            path="/chat"
+            element={
+              <ProtectedPage>
+                <Chat />
               </ProtectedPage>
             }
           />
